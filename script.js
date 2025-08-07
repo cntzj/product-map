@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
           formatter: function (params) {
             if (params.data && params.data.info) {
               const info = params.data.info;
-              return `${params.name}<br/>渠道商：${info.渠道商}<br/>时间：${info.时间}<br/>产品：${info.产品}`;
+              return `${params.name}<br/>渠道商：${info.渠道商}<br/>产品类别：${info.产品类别}<br/>应用规模：${info.应用规模}`;
             }
             return `${params.name}<br/>无数据`;
           }
