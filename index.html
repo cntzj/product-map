@@ -73,8 +73,11 @@
         return name.replace(/省|市|自治区|维吾尔|回族|壮族/g, "");
       }
 
-      // 加时间戳防缓存
-      fetch('data.json?t=' + Date.now())
+      // 自动识别 GitHub Pages 路径
+      const basePath = window.location.pathname.replace(/\/[^\/]*$/, '/');
+      const dataUrl = basePath + 'data.json?t=' + Date.now();
+
+      fetch(dataUrl)
         .then(response => {
           if (!response.ok) throw new Error('Failed to load data.json');
           return response.json();
