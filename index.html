@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>产品应用地图</title>
   <style>
-    html, body { height: 100%; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif; }
-    #chart { width: 100%; height: 100%; }
+    html, body { height: 100%; margin: 0; }
+    /* 用 100vh 避免父容器高度为 0 导致图表不显示 */
+    #chart { width: 100%; height: 100vh; }
   </style>
 </head>
 <body>
@@ -14,12 +15,71 @@
 
   <!-- ECharts 主库（CDN） -->
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-  <!-- 中国地图数据（CDN，提供 'china' 地图） -->
+  <!-- 中国地图数据（CDN，会自动注册 'china' 地图） -->
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/map/js/china.js"></script>
 
-  <!-- 你的数据（本地，替代 JSON） -->
-  <script src="data.js"></script>
-  <!-- 绘图逻辑 -->
-  <script src="script.js"></script>
+  <!-- 你的数据：直接写在页面里，绝不会有路径/跨域问题 -->
+  <script>
+    const APP_DATA = {
+      "广东": { "渠道商": "无", "产品类别": "OMS、TMS", "应用规模": "规模应用" },
+      "云南": { "渠道商": "无", "产品类别": "OMS",      "应用规模": "规模应用" },
+      "浙江": { "渠道商": "无", "产品类别": "OMS",      "应用规模": "试点应用" },
+      "新疆": { "渠道商": "无", "产品类别": "TMS",      "应用规模": "试点应用" }
+    };
+  </script>
+
+  <!-- 画图逻辑：不 fetch，直接用上面的 APP_DATA -->
+  <script>
+    (function () {
+      function start() {
+        var el = document.getElementById('chart');
+        if (!el) return;
+
+        var chart = echarts.init(el);
+
+        var seriesData = Object.keys(APP_DATA).map(function (p) {
+          return { name: p, value: 1, info: APP_DATA[p] };
+        });
+
+        var option = {
+          tooltip: {
+            trigger: 'item',
+            formatter: function (params) {
+              var info = params.data && params.data.info;
+              if (info) {
+                function get(k){ return (info[k] != null && info[k] !== '') ? info[k] : '—'; }
+                return [
+                  params.name,
+                  '渠道商：' + get('渠道商'),
+                  '产品类别：' + get('产品类别'),
+                  '应用规模：' + get('应用规模')
+                ].join('<br/>');
+              }
+              return params.name + '<br/>无数据';
+            }
+          },
+          visualMap: { show: false, min: 0, max: 1, inRange: { color: ['#e0f3ff', '#006edd'] } },
+          series: [{
+            name: '应用区域',
+            type: 'map',
+            map: 'china',
+            roam: true,
+            label: { show: true, fontSize: 10 },
+            data: seriesData
+          }]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', function () { chart.resize(); });
+      }
+
+      // 等 DOM 就绪后再初始化
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+      } else {
+        start();
+      }
+    })();
+  </script>
 </body>
 </html>
