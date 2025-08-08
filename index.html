@@ -5,18 +5,30 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>产品应用地图</title>
   <style>
-    html, body { height: 100%; margin: 0; }
-    /* 用 100vh 避免父容器高度为 0 导致图表不显示 */
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: radial-gradient(circle at 50% 50%, #0a1f44, #000814);
+      font-family: 'Microsoft YaHei', sans-serif;
+    }
     #chart { width: 100%; height: 100vh; }
+    .echarts-tooltip {
+      background: rgba(10, 25, 47, 0.85);
+      border: 1px solid #00e0ff;
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.4em;
+    }
   </style>
 </head>
 <body>
   <div id="chart"></div>
 
-<script src="./vendor/echarts.min.js?v=1"></script>
-<script src="./vendor/china.js?v=1"></script>
+  <script src="./vendor/echarts.min.js?v=1"></script>
+  <script src="./vendor/china.js?v=1"></script>
 
-  <!-- 你的数据：直接写在页面里，绝不会有路径/跨域问题 -->
   <script>
     const APP_DATA = {
       "广东": { "渠道商": "无", "产品类别": "OMS、TMS", "应用规模": "规模应用" },
@@ -24,10 +36,7 @@
       "浙江": { "渠道商": "无", "产品类别": "OMS",      "应用规模": "试点应用" },
       "新疆": { "渠道商": "无", "产品类别": "TMS",      "应用规模": "试点应用" }
     };
-  </script>
 
-  <!-- 画图逻辑：不 fetch，直接用上面的 APP_DATA -->
-  <script>
     (function () {
       function start() {
         var el = document.getElementById('chart');
@@ -40,29 +49,56 @@
         });
 
         var option = {
+          backgroundColor: 'transparent',
           tooltip: {
             trigger: 'item',
+            backgroundColor: 'rgba(10, 25, 47, 0.85)',
+            borderColor: '#00e0ff',
+            borderWidth: 1,
+            padding: 10,
+            textStyle: { color: '#fff', fontSize: 13 },
             formatter: function (params) {
               var info = params.data && params.data.info;
               if (info) {
                 function get(k){ return (info[k] != null && info[k] !== '') ? info[k] : '—'; }
                 return [
-                  params.name,
+                  '<b style="color:#00e0ff;font-size:14px;">' + params.name + '</b>',
                   '渠道商：' + get('渠道商'),
                   '产品类别：' + get('产品类别'),
                   '应用规模：' + get('应用规模')
                 ].join('<br/>');
               }
-              return params.name + '<br/>无数据';
+              return '<b style="color:#00e0ff;">' + params.name + '</b><br/>无数据';
             }
           },
-          visualMap: { show: false, min: 0, max: 1, inRange: { color: ['#e0f3ff', '#006edd'] } },
+          visualMap: {
+            show: false, min: 0, max: 1,
+            inRange: { color: ['#003366', '#00e0ff'] }
+          },
           series: [{
             name: '应用区域',
             type: 'map',
             map: 'china',
             roam: true,
-            label: { show: true, fontSize: 10 },
+            zoom: 1.1,
+            label: {
+              show: true,
+              fontSize: 10,
+              color: '#fff'
+            },
+            itemStyle: {
+              areaColor: '#003366',
+              borderColor: '#003366', // 边界色与区域色一致 => 消除缝隙
+              borderWidth: 0.5
+            },
+            emphasis: {
+              label: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
+              itemStyle: {
+                areaColor: '#00e0ff',
+                shadowColor: '#00f6ff',
+                shadowBlur: 20
+              }
+            },
             data: seriesData
           }]
         };
@@ -71,7 +107,6 @@
         window.addEventListener('resize', function () { chart.resize(); });
       }
 
-      // 等 DOM 就绪后再初始化
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', start);
       } else {
