@@ -2,199 +2,24 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <title>传感器应用区域分布</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>产品应用地图</title>
   <style>
-    body {
-      background: linear-gradient(135deg, #f0f4f8, #d9eafc);
-      margin: 0;
-      font-family: "Microsoft YaHei", sans-serif;
-    }
-    #chart {
-      width: 90%;
-      height: 90vh;
-      margin: 20px auto;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      padding: 10px;
-    }
+    html, body { height: 100%; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    #chart { width: 100%; height: 100%; }
   </style>
 </head>
 <body>
   <div id="chart"></div>
 
-  <!-- ECharts 主库 -->
+  <!-- ECharts 主库（CDN） -->
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-  <!-- 中国地图 -->
+  <!-- 中国地图数据（CDN，提供 'china' 地图） -->
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/map/js/china.js"></script>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const chartDom = document.getElementById('chart');
-      const myChart = echarts.init(chartDom);
-
-      // 省会坐标字典
-      const geoCoordMapFull = {
-        "北京": [116.405285, 39.904989],
-        "天津": [117.190182, 39.125596],
-        "上海": [121.472644, 31.231706],
-        "重庆": [106.504962, 29.533155],
-        "河北": [114.502461, 38.045474],
-        "山西": [112.549248, 37.857014],
-        "辽宁": [123.429096, 41.796767],
-        "吉林": [125.3245, 43.886841],
-        "黑龙江": [126.642464, 45.756967],
-        "江苏": [118.767413, 32.041544],
-        "浙江": [120.153576, 30.287459],
-        "安徽": [117.283042, 31.86119],
-        "福建": [119.306239, 26.075302],
-        "江西": [115.892151, 28.676493],
-        "山东": [117.000923, 36.675807],
-        "河南": [113.665412, 34.757975],
-        "湖北": [114.298572, 30.584355],
-        "湖南": [112.982279, 28.19409],
-        "广东": [113.280637, 23.125178],
-        "广西": [108.320004, 22.82402],
-        "海南": [110.33119, 20.031971],
-        "四川": [104.065735, 30.659462],
-        "贵州": [106.713478, 26.578343],
-        "云南": [102.712251, 25.040609],
-        "西藏": [91.132212, 29.660361],
-        "陕西": [108.948024, 34.263161],
-        "甘肃": [103.823557, 36.058039],
-        "青海": [101.778916, 36.623178],
-        "宁夏": [106.278179, 38.46637],
-        "新疆": [87.617733, 43.792818],
-        "内蒙古": [111.670801, 40.818311]
-      };
-
-      // 名称标准化
-      function normalizeProvince(name) {
-        return name.replace(/省|市|自治区|维吾尔|回族|壮族/g, "");
-      }
-
-      // 修正路径：因为 index.html 和 data.json 在 product-map-main/ 目录
-      const dataUrl = 'data.json?t=' + Date.now();
-
-      fetch(dataUrl)
-        .then(response => {
-          if (!response.ok) throw new Error('Failed to load data.json');
-          return response.json();
-        })
-        .then(data => {
-          const seriesData = Object.keys(data).map(province => ({
-            name: normalizeProvince(province),
-            value: 1,
-            info: data[province]
-          }));
-
-          const scatterData = Object.keys(data).map(province => {
-            const normName = normalizeProvince(province);
-            const coord = geoCoordMapFull[normName];
-            if (coord) {
-              return {
-                name: normName,
-                value: coord.concat(1),
-                info: data[province]
-              };
-            }
-            return null;
-          }).filter(item => item !== null);
-
-          const option = {
-            backgroundColor: 'transparent',
-            title: {
-              text: '传感器应用区域分布',
-              left: 'center',
-              top: 20,
-              textStyle: {
-                fontSize: 22,
-                fontWeight: 'bold',
-                color: '#333'
-              }
-            },
-            tooltip: {
-              trigger: 'item',
-              backgroundColor: 'rgba(50,50,50,0.85)',
-              borderColor: '#ccc',
-              borderWidth: 1,
-              textStyle: { color: '#fff', fontSize: 14 },
-              formatter: function (params) {
-                if (params.data && params.data.info) {
-                  const info = params.data.info;
-                  return `
-                    <strong>${params.name}</strong><br/>
-                    渠道商：${info.渠道商}<br/>
-                    产品类别：${info.产品类别}<br/>
-                    应用规模：${info.应用规模}
-                  `;
-                }
-                return `${params.name}<br/>无数据`;
-              }
-            },
-            geo: {
-              map: 'china',
-              roam: true,
-              zoom: 1.2,
-              label: {
-                show: true,
-                fontSize: 9,
-                color: '#444'
-              },
-              itemStyle: {
-                borderColor: '#fff',
-                borderWidth: 1,
-                areaColor: '#e0f3ff',
-                shadowColor: 'rgba(0, 0, 0, 0.2)',
-                shadowBlur: 5
-              },
-              emphasis: {
-                label: { color: '#000', fontWeight: 'bold' },
-                itemStyle: {
-                  areaColor: '#ffa940',
-                  shadowColor: 'rgba(0, 0, 0, 0.3)',
-                  shadowBlur: 8
-                }
-              }
-            },
-            series: [
-              {
-                name: '应用区域',
-                type: 'map',
-                map: 'china',
-                geoIndex: 0,
-                data: seriesData
-              },
-              {
-                name: '热点',
-                type: 'effectScatter',
-                coordinateSystem: 'geo',
-                data: scatterData,
-                symbolSize: 12,
-                showEffectOn: 'render',
-                rippleEffect: {
-                  brushType: 'stroke',
-                  scale: 4
-                },
-                hoverAnimation: true,
-                itemStyle: {
-                  color: '#006edd',
-                  shadowBlur: 10,
-                  shadowColor: '#333'
-                },
-                zlevel: 2
-              }
-            ]
-          };
-
-          myChart.setOption(option);
-          window.addEventListener('resize', () => myChart.resize());
-        })
-        .catch(error => {
-          console.error('Error loading or parsing data.json:', error);
-          chartDom.innerHTML = '<p style="color: red; text-align: center; padding: 20px;">无法加载数据。</p>';
-        });
-    });
-  </script>
+  <!-- 你的数据（本地，替代 JSON） -->
+  <script src="data.js"></script>
+  <!-- 绘图逻辑 -->
+  <script src="script.js"></script>
 </body>
 </html>
