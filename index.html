@@ -73,9 +73,8 @@
         return name.replace(/省|市|自治区|维吾尔|回族|壮族/g, "");
       }
 
-      // 自动识别 GitHub Pages 路径
-      const basePath = window.location.pathname.replace(/\/[^\/]*$/, '/');
-      const dataUrl = basePath + 'data.json?t=' + Date.now();
+      // 修正路径：因为 index.html 和 data.json 在 product-map-main/ 目录
+      const dataUrl = 'product-map-main/data.json?t=' + Date.now();
 
       fetch(dataUrl)
         .then(response => {
